@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <title>Rekomendasi Domain Desa</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center">
+
+<div class="w-full max-w-md p-6 bg-white rounded-xl shadow-md">
+    <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Rekomendasi Nama Domain Desa</h2>
+
+    <form class="space-y-4">
+        <div>
+            <label class="block mb-1 font-semibold">Provinsi</label>
+            <select id="provinsi" class="w-full border border-gray-300 rounded-lg p-2">
+                <option value="">--Pilih Provinsi--</option>
+                {% for p in provinsi %}
+                    <option value="{{ p.kode_provinsi }}">{{ p.nama }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label class="block mb-1 font-semibold">Kabupaten</label>
+            <select id="kabupaten" class="w-full border border-gray-300 rounded-lg p-2">
+                <option>--Pilih Kabupaten--</option>
+            </select>
+        </div>
+
+        <div>
+            <label class="block mb-1 font-semibold">Kecamatan</label>
+            <select id="kecamatan" class="w-full border border-gray-300 rounded-lg p-2">
+                <option>--Pilih Kecamatan--</option>
+            </select>
+        </div>
+
+        <div>
+            <label class="block mb-1 font-semibold">Desa</label>
+            <select id="desa" class="w-full border border-gray-300 rounded-lg p-2">
+                <option>--Pilih Desa--</option>
+            </select>
+        </div>
+
+        <div class="text-center mt-6">
+            <h3 class="text-xl font-semibold">Nama Domain:</h3>
+            <p id="domain_output" class="mt-2 text-green-600 font-bold text-lg">-</p>
+        </div>
+    </form>
+</div>
+
+<script>
+$(function(){
+    function loadingOption(label) {
+        return `<option>--Memuat ${label}...</option>`;
+    }
+
+    $('#provinsi').change(function(){
+        let val = $(this).val();
+        $('#kabupaten').html(loadingOption('Kabupaten'));
+        $.ajax({
+            url: '/ajax/kabupaten/',
+            data: {provinsi_id: val},
+            dataType: 'json',
+            success: function(data){
+                let opt = '<option>--Pilih Kabupaten--</option>';
+                data.data.forEach(k => opt += `<option value="${k.kode_kabupaten}">${k.nama}</option>`);
+                $('#kabupaten').html(opt);
+                $('#kecamatan').html('<option>--Pilih Kecamatan--</option>');
+                $('#desa').html('<option>--Pilih Desa--</option>');
+                $('#domain_output').text('-');
+            },
+            error: function(){
+                alert('Gagal memuat kabupaten');
+            }
+        });
+    });
+
+    $('#kabupaten').change(function(){
+        let val = $(this).val();
+        $('#kecamatan').html(loadingOption('Kecamatan'));
+        $.ajax({
+            url: '/ajax/kecamatan/',
+            data: {kabupaten_id: val},
+            dataType: 'json',
+            success: function(data){
+                let opt = '<option>--Pilih Kecamatan--</option>';
+                data.data.forEach(k => opt += `<option value="${k.kode_kecamatan}">${k.nama}</option>`);
+                $('#kecamatan').html(opt);
+                $('#desa').html('<option>--Pilih Desa--</option>');
+                $('#domain_output').text('-');
+            },
+            error: function(){
+                alert('Gagal memuat kecamatan');
+            }
+        });
+    });
+
+    $('#kecamatan').change(function(){
+        let val = $(this).val();
+        $('#desa').html(loadingOption('Desa'));
+        $.ajax({
+            url: '/ajax/desa/',
+            data: {kecamatan_id: val},
+            dataType: 'json',
+            success: function(data){
+                let opt = '<option>--Pilih Desa--</option>';
+                data.data.forEach(k => opt += `<option value="${k.kode_desa}">${k.nama}</option>`);
+                $('#desa').html(opt);
+                $('#domain_output').text('-');
+            },
+            error: function(){
+                alert('Gagal memuat desa');
+            }
+        });
+    });
+
+    $('#desa').change(function(){
+        let desa_id = $(this).val();
+        if (!desa_id || desa_id.includes('Pilih')) {
+            $('#domain_output').text('-');
+            return;
+        }
+        $.ajax({
+            url: '/ajax/domain/',
+            data: {desa_id: desa_id},
+            dataType: 'json',
+            success: function(data){
+                $('#domain_output').text(data.nama_domain);
+            },
+            error: function(){
+                alert('Gagal memuat nama domain');
+            }
+        });
+    });
+
+});
+</script>
+
+</body>
+</html>
